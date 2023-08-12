@@ -246,6 +246,17 @@ private:
         std::shared_ptr<ServiceCaller> serviceCallerNode = std::make_shared<ServiceCaller>();
         rclcpp::Client<tcp_tunnel::srv::RegisterClient>::SharedPtr registerClientClient = serviceCallerNode->create_client<tcp_tunnel::srv::RegisterClient>(
                 serverPrefix + "tcp_tunnel_server/register_client");
+        
+        while (!registerClientClient->wait_for_service(std::chrono::duration<float>(1))) 
+          {
+            if (!rclcpp::ok()) 
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
+                return;
+            }
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
+        }
+
         rclcpp::detail::FutureAndRequestId registerClientFuture = registerClientClient->async_send_request(registerClientRequest);
 
         // connect to server
